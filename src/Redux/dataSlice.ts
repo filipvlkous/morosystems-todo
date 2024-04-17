@@ -1,54 +1,115 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { fetchUserById,getAllItems  } from "./actions";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import {
+  createNewDoc,
+  deleteAllCompleted,
+  deleteDoc,
+  getAllItems,
+  getCompletedItems,
+  updateDocCompleted,
+  updateDocIncompleted,
+} from "./actions";
+import { ReduxStateType } from "../Types";
 
-
-const initialState = {
-  cartItems: [],
-  amount: 4,
-  total: 0,
+const initialState: ReduxStateType = {
+  data: [],
   isLoading: true,
+  error: false,
 };
 
- const cartSlice = createSlice({
+const setLoading = (state: ReduxStateType) => {
+  state.isLoading = true;
+};
+
+const setError = (state: ReduxStateType) => {
+  state.isLoading = false;
+  state.error = true;
+};
+
+const setData = (state: ReduxStateType, action: PayloadAction<any>) => {
+  state.isLoading = false;
+  state.data = action.payload;
+};
+
+const dataSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    clearCart: (state) => {
-      state.cartItems = [];
+    getCompleted: (state) => {
+      console.log(state);
+      state.data = state.data.filter((item) => item.completed);
     },
-    removeItem: (state, action) => {
-      const itemId = action.payload;
+    getIncomplete: (state) => {
+      state.data = state.data.filter((item) => !item.completed);
     },
-
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getAllItems.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(getAllItems.fulfilled, (state, action) => {
-        console.log(action);
+      // get all items
+      .addCase(getAllItems.pending, setLoading)
+      .addCase(getAllItems.fulfilled, setData)
+      .addCase(getAllItems.rejected, setError)
+      //get completed items
+      .addCase(getCompletedItems.pending, setLoading)
+      .addCase(getCompletedItems.fulfilled, setData)
+      .addCase(getCompletedItems.rejected, setError)
+      //create new doc
+      .addCase(createNewDoc.pending, setLoading)
+      .addCase(createNewDoc.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.cartItems = action.payload;
+        state.data.push(action.payload);
       })
-      .addCase(getAllItems.rejected, (state, action) => {
-        console.log(action);
+      .addCase(createNewDoc.rejected, setError)
+      //delete doc
+      .addCase(deleteDoc.pending, setLoading)
+      .addCase(deleteDoc.fulfilled, (state, action) => {
         state.isLoading = false;
+        if (action.payload == undefined) return;
+        state.data = action.payload;
       })
-      .addCase(fetchUserById.pending, (state) => {
-        state.isLoading = true;})
-      .addCase(fetchUserById.fulfilled, (state, action) => {
-        console.log(action.payload);
+      .addCase(deleteDoc.rejected, setError)
+      // delete all completed
+      .addCase(deleteAllCompleted.pending, setLoading)
+      .addCase(deleteAllCompleted.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.data = action.payload;
       })
-      .addCase(fetchUserById.rejected, (state, action) => {
-        console.log(action);
+      .addCase(deleteAllCompleted.rejected, setError)
+      //update doc complete
+      .addCase(updateDocCompleted.pending, setLoading)
+      .addCase(updateDocCompleted.fulfilled, (state, action) => {
         state.isLoading = false;
+        const index = state.data.findIndex(
+          (doc) => doc.id === action.payload.id
+        );
+
+        const updatedDocs = [...state.data];
+        updatedDocs[index] = {
+          ...updatedDocs[index],
+          ["completed"]: true,
+        };
+
+        state.data = updatedDocs;
       })
+      .addCase(updateDocCompleted.rejected, setError)
+      //update doc incomplete
+      .addCase(updateDocIncompleted.pending, setLoading)
+      .addCase(updateDocIncompleted.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const index = state.data.findIndex(
+          (doc) => doc.id === action.payload.id
+        );
+
+        const updatedDocs = [...state.data];
+        updatedDocs[index] = {
+          ...updatedDocs[index],
+          ["completed"]: false,
+        };
+
+        state.data = updatedDocs;
+      })
+      .addCase(updateDocIncompleted.rejected, setError);
   },
 });
 
-// console.log(cartSlice);
-export const { clearCart, removeItem } = cartSlice.actions;
-
-export default cartSlice.reducer;
+export const { getCompleted, getIncomplete } = dataSlice.actions;
+export default dataSlice.reducer;

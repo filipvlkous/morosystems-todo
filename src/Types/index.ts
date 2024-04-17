@@ -2,10 +2,12 @@ export type ItemTypes = {
     id: string,
     text: string,
     completed: boolean,
-    createdDate: number
+    createdDate: number,
+    completedDate: number
 };
 
 export type ReduxStateType = {
-    loading: boolean,
-    data: ItemTypes[]
+    isLoading: boolean,
+    data: ItemTypes[],
+    error:boolean
 }
