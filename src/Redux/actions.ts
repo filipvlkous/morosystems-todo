@@ -157,15 +157,14 @@ export const completeAllVisibleTasks = createAsyncThunk(
   "users/completeAllVisibleTasks",
   async (arr: ItemTypes[], thunkAPI) => {
     try {
-      console.log(arr);
-      const deletePromises = arr.map(async (element: ItemTypes) => {
+        const deletePromises = arr.map(async (element: ItemTypes) => {
         if (!element.completed) {
           await axios.post(url + "/tasks/" + element.id + "/complete");
         }
       });
-      console.log(deletePromises);
       await Promise.all(deletePromises);
 
+      if(deletePromises.length <= 0) return arr
       const resp = await axios.get(url + "/tasks");
       return resp.data;
     } catch (error) {

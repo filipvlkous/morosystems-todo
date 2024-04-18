@@ -166,7 +166,7 @@ function App() {
            */
           removeSelected={() => {
             setDeleteArr([]);
-            setCompleted("");
+            setCompleted(completed);
           }}
         />
         <Add />
