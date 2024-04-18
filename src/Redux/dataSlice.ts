@@ -1,14 +1,16 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import {
+  completeAllVisibleTasks,
   createNewDoc,
   deleteAllCompleted,
   deleteDoc,
   getAllItems,
   getCompletedItems,
+  saveTaskName,
   updateDocCompleted,
   updateDocIncompleted,
 } from "./actions";
-import { ReduxStateType } from "../Types";
+import { ItemTypes, ReduxStateType } from "../Types";
 
 const initialState: ReduxStateType = {
   data: [],
@@ -53,7 +55,7 @@ const dataSlice = createSlice({
       .addCase(getCompletedItems.fulfilled, setData)
       .addCase(getCompletedItems.rejected, setError)
       //create new doc
-      .addCase(createNewDoc.pending, setLoading)
+      // .addCase(createNewDoc.pending, setLoading)
       .addCase(createNewDoc.fulfilled, (state, action) => {
         state.isLoading = false;
         state.data.push(action.payload);
@@ -75,7 +77,7 @@ const dataSlice = createSlice({
       })
       .addCase(deleteAllCompleted.rejected, setError)
       //update doc complete
-      .addCase(updateDocCompleted.pending, setLoading)
+      // .addCase(updateDocCompleted.pending, setLoading)
       .addCase(updateDocCompleted.fulfilled, (state, action) => {
         state.isLoading = false;
         const index = state.data.findIndex(
@@ -92,7 +94,7 @@ const dataSlice = createSlice({
       })
       .addCase(updateDocCompleted.rejected, setError)
       //update doc incomplete
-      .addCase(updateDocIncompleted.pending, setLoading)
+      // .addCase(updateDocIncompleted.pending, setLoading)
       .addCase(updateDocIncompleted.fulfilled, (state, action) => {
         state.isLoading = false;
         const index = state.data.findIndex(
@@ -107,7 +109,28 @@ const dataSlice = createSlice({
 
         state.data = updatedDocs;
       })
-      .addCase(updateDocIncompleted.rejected, setError);
+      .addCase(updateDocIncompleted.rejected, setError)
+      // update task name
+      .addCase(saveTaskName.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const updatedData = state.data.map((item:ItemTypes) => {
+          if (item.id === action.payload.id) {
+            return { ...item, text: action.payload.text };
+          }
+          return item;
+        });
+
+        state.data = updatedData;
+
+      })
+      .addCase(saveTaskName.rejected, setError)
+      // complete all visible tasks
+      .addCase(completeAllVisibleTasks.pending, setLoading)
+      .addCase(completeAllVisibleTasks.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.data = action.payload;
+      })
+      .addCase(completeAllVisibleTasks.rejected, setError);
   },
 });
 
